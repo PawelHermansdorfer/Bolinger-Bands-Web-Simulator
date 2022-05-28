@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Paweł Hermansdorfer{% endblock %}
+
+{% block content %}
+    <!--INTRO-->
+    <table style="height: 20px;"></table>
+    <h1 align="CENTER">Bolinger bands</h1>
+    <p align="CENTER">Bollinger Bands are envelopes plotted at a standard deviation level above and below a simple moving average of the price. Because the distance of the bands is based on standard deviation, they adjust to volatility swings in the underlying price. Bollinger Bands use 2 parameters, Period and Standard Deviations, StdDev.</p>
+    <table style="height: 10px;"></table>
+
+    
+    <form method="POST">
+    <!--  action="" onkeydown="return event.key != 'Enter';"  to disable enter submit-->  
+
+        <div class="container col-md-8" align="center">
+            <h4 align="center">Simulation</h4>
+
+            <!--TICKERS INPUT-->
+            <div class="form-floating">
+                <input id="stocks_names" type="text" class="form-control" placeholder="Stocks names separated with , e.g. APPL, MSFT..." autocomplete="off" name="stocks_names">
+                <label for="stock_name">Stocks tickers separated with "," e.g. "AAPL, MSFT..."</label>
+            </div>
+
+            <div class="row"><p></p></div>
+
+            <!--TIME => SPEC DATES-->
+            <div class="row">
+                <div class="col-6">
+
+                    <label for="end_date">End date</label>
+                    <input id="end_date" class="form-control" type="date" name="end_date"/>
+                    <script>$('#end_date').val(new Date().toISOString().slice(0, 10));</script>
+                </div>
+                    
+                <div class="col-6">
+                    <label for="time_period">Time period</label>
+                    <select class="form-select" name="time_period" id="time_period" aria-label="time_period">
+                        <option value="6mo">6 Months</option>
+                        <option value="ytd">Year to date</option>
+                        <option value="1y">1 Year</option>
+                        <option value="2y">2 Years</option>
+                        <option value="5y">5 Years</option>
+                        <option value="10y">10 Years</option>
+                        <option value="max">Max</option>
+                    </select>
+                </div>
+            </div>
+
+            <!--GENERATE BUTTON-->
+            <div class="row"><p></p></div>
+            <div class="row-cols-lg-2" align="center">
+                    <button id="generate_plot" name="generate_plot" type="submit" class="btn btn-primary btn-lg" data-dismiss="modal">Generate</button>
+            </div>
+
+            
+            <table style="height: 30px;"></table>
+            <!--
+
+                <div class="progress">
+                    <div id="progress_bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 50%">
+                        100% - loading {stock_name}
+                    </div>
+                </div>
+            -->
+
+        </div>
+    </form>
+    
+    <table style="height: 30px;"></table>
+
+
+
+    <!--GENERATED OUTPUT-->
+    {%if generated_data == 'Incorrect tickers'%}
+        <p align="CENTER">Incorect input: {{inputs}}</p>
+    {% elif generated_data %}
+        {% for stock in generated_data %}
+            <div id="plot_output{{loop.index}}" align="justify"></div>
+        
+            <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+            <!-- 
+                <script>
+                    var graph1 = {{stock['plot_img'] | safe}};
+                    var config = {responsive: true}
+                    Plotly.plot("plot_output{{loop.index}}", graph1, {}, config)
+                </script>
+            -->
+            
+            <script>
+                (function() {
+                    if (!window.charts){
+                        window.charts = []
+                    }
+
+                    var d3 = Plotly.d3;
+                    
+                    var WIDTH_IN_PERCENT_OF_PARENT = 50;
+                    
+                    if (window.innerWidth<500){ var WIDTH_IN_PERCENT_OF_PARENT = 90}
+                    else {var WIDTH_IN_PERCENT_OF_PARENT = 50 + (250000/(1.05*window.innerWidth)**2)*40}
+                    
+                    
+                    var gd3 = d3.select('body')
+                        .append('div')
+                        .style({
+                            width: WIDTH_IN_PERCENT_OF_PARENT + '%',
+                            'margin-left': (100 - WIDTH_IN_PERCENT_OF_PARENT) / 2 + '%',
+                    
+                            //height: HEIGHT_IN_PERCENT_OF_PARENT + 'vh',
+                            //'margin-top': (100 - HEIGHT_IN_PERCENT_OF_PARENT) / 2 + 'vh'
+                            height: 450 + 'px',
+                            'margin-top': 10 + 'px'
+                        });
+                    
+                    
+                    var gd = gd3.node();
+
+                    window.charts.push(gd)
+                    var graph1 = {{stock['plot_img'] | safe}};
+                    
+                    Plotly.plot(gd, graph1, {});
+                    
+            
+
+                    window.onresize = function() {
+                        if (window.innerWidth<500){ var WIDTH_IN_PERCENT_OF_PARENT = 90}
+                        else {WIDTH_IN_PERCENT_OF_PARENT = 50 + (250000/(1.05*window.innerWidth)**2)*40}
+                        
+                        for (let i = 0; i < window.charts.length; i++){
+                            window.charts[i].style.width = WIDTH_IN_PERCENT_OF_PARENT + '%'
+                            window.charts[i].style.marginLeft = (100 - WIDTH_IN_PERCENT_OF_PARENT) / 2 + '%'
+                            
+                            Plotly.Plots.resize(window.charts[i]);
+                        }
+                    };
+                    })();
+            </script>
+        {% endfor %}
+    {% endif %}
+{% endblock %}
